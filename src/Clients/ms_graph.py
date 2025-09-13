@@ -69,18 +69,3 @@ class MicrosoftGraphClient:
             "Authorization": f"Bearer {self.token_result}",
             "Accept": "application/json"
         }
-
-if __name__ == "__main__":
-    Client = MicrosoftGraphClient()
-    token = Client.get_token()
-
-    headers = {"Authorization": f"Bearer {token}"}
-    r = requests.get(f"{GRAPH}/me?$select=displayName,mail,userPrincipalName", headers=headers, timeout=30)
-    print("\n/me response status:", r.status_code)
-    print("Body:", r.text)
-
-    if r.ok:
-        me = r.json()
-        print(f"\n✅ Signed in as: {me.get('displayName')} <{me.get('mail') or me.get('userPrincipalName')}>")
-    else:
-        print("\ncall failed. Check API permissions and consent.")
