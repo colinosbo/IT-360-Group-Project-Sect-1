@@ -36,9 +36,9 @@ class MicrosoftGraphClient:
         #first attempt to get an access token from cache, if not have user sign in.
         accounts = self.app.get_accounts()
         if accounts:
-            result = self.app.acquire_token_silent(SCOPES, account)
+            result = self.app.acquire_token_silent(SCOPES, account[0])
             if result and "access_token" in result:
-                return result
+                return self.token_result
 
         #Go back to interactive Device Code authentication (this prints a code)
         #the flow variable sends a request to microsoft login server, which returns
@@ -69,3 +69,19 @@ class MicrosoftGraphClient:
             "Authorization": f"Bearer {self.token_result}",
             "Accept": "application/json"
         }
+
+    def get_latest_message(self):
+        headers = self.headers()  # uses the bearer token you already stored
+        url = f"{GRAPH}/me/messages"
+        params = {
+            "$top": 1,
+            "$orderby": "receivedDateTime DESC",
+            "$select": "id,subject,from,receivedDateTime,bodyPreview"
+        }
+        r = requests.get(url, headers=headers, params=params, timeout=30)
+        if not r.ok:
+            # show why it failed
+            print("GET /me/messages failed:", r.status_code, repr(r.text))
+            return None
+        data = r.json()
+        return (data.get("value") or [None])[0]
